@@ -1,0 +1,19 @@
+{
+  "name": "opeteh",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "git+https://github.com/jakubzika/opeteh.git",
+  "author": "Jakub Zíka",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jakubzika/opeteh/issues"
+  },
+  "homepage": "https://github.com/jakubzika/opeteh#readme",
+  "dependencies": {
+    "babel-cli": "^6.26.0"
+  }
+}

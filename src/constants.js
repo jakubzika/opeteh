@@ -1,0 +1,16 @@
+
+export const status = {
+  CONNECTED: 'CONNECTED',
+  DISCONNECTED: 'DISCONNECTED',
+  CONNECTING: 'CONNECTING',
+};
+
+export const type = {
+  SERVER: 'SERVER',
+  CLIENT: 'CLIENT',
+};
+
+export const networkChange = {
+  NEW_CONNECTION: 'NEW_CONNECTION',
+  CLIENT_DISCONNECTED: 'CLIENT_DISCONNECTED',
+};

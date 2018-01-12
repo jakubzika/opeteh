@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c rollup.config.js",
+    "develop": "rollup -c rollup.config.js -w"
   },
   "repository": "git+https://github.com/jakubzika/opeteh.git",
   "author": "Jakub Zíka",
@@ -14,6 +16,12 @@
   },
   "homepage": "https://github.com/jakubzika/opeteh#readme",
   "dependencies": {
-    "babel-cli": "^6.26.0"
+    "babel-cli": "^6.26.0",
+    "lodash": "^4.17.4",
+    "rollup": "^0.53.3",
+    "rollup-plugin-commonjs": "^8.2.6",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "socket.io": "^2.0.4",
+    "webrtc-adapter": "^6.0.3"
   }
 }

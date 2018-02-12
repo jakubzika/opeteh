@@ -1,9 +1,9 @@
-import { forEach } from 'lodash';
+import _ from 'lodash';
 
-import Server from 'server';
-import Client from 'client';
-import iceServers from 'ice-servers';
-import { status, type, networkChange } from 'constants';
+import Server from './server';
+import Client from './client';
+import { iceServers } from './ice-servers';
+import { status, type, networkChange } from './constants';
 
 const iceConfig = {
   iceServers,
@@ -21,7 +21,7 @@ class Opeteh {
       this.server = new Server(signallingServer, iceConfig, options.maxConnections);
       this.server.onopen = this.onNewConnection.bind(this);
     } else if (this.type === type.CLIENT) {
-      this.client = new Client(signallingServer, iceConfig);
+      this.client = new Client(signallingServer, iceConfig);  
     }
   }
 
@@ -58,10 +58,10 @@ class Opeteh {
   onNewConnection(id) {
     const clients = Object.keys(this.server.clients);
     this.clients = clients;
-    forEach(this.server.clients, (client, clientId) => {
-      this.server.send('network', { clients, client: id, type: networkChange.NEW_CONNECTION}, clientId);
+    _.forEach(this.server.clients, (client, clientId) => {
+      this.server.send('network', { clients, client: id, type: networkChange.NEW_CONNECTION }, clientId);
     });
-    forEach(this.onclientchange, (func, id) => {
+    _.forEach(this.onclientchange, (func, id) => {
       if(typeof func === 'function') {
         func(networkChange.NEW_CONNECTION, id);
         this.onclientchange[id] = null;

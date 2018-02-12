@@ -1,5 +1,6 @@
 import Client from './client';
 import Server from './server';
+import Opeteh from './opeteh';
 // import Old from './old';
 
 let signallingServerURL = 'ws://localhost:8002/';
@@ -19,7 +20,7 @@ function isServer() {
   server.listen();
   let sendButton = document.getElementById('send');
   sendButton.onclick = () => {
-    server.send(document.getElementById('input').value,Object.keys(server.clients)[0]);
+    server.send('message',document.getElementById('input').value, Object.keys(server.clients)[0]);
   };
 }
 
@@ -33,11 +34,11 @@ async function isClient() {
   };
   let sendButton = document.getElementById('send');
   sendButton.onclick = () => {
-    client.send(document.getElementById('input').value);
+    client.send('message',document.getElementById('input').value);
   };
 }
 
-if(location.hash === '#s') {
+if (location.hash === '#s') {
   isServer();
 } else {
   isClient();

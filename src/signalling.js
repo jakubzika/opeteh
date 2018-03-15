@@ -64,13 +64,14 @@ class SignallingService {
       this.send('session', {});
       const message = await this.message('session');
       this.room = message.data.room;
-      console.log(this.room);
+      this.id = message.data.id;
     } else {
       this.room = room;
       this.send('session', {
         room: room,
       });
-      await this.message('session');
+      const message = await this.message('session');
+
     }
   }
 

@@ -1,7 +1,7 @@
 import Client from './client';
 import Server from './server';
+import * as constants from './constants';
 
-export default {
-  OpetehServer: Server,
-  OpetehClient: Client,
+export {
+  Server, Client, constants
 }

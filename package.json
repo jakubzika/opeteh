@@ -2,7 +2,7 @@
   "name": "opeteh",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup -c rollup.config.js",
@@ -21,8 +21,6 @@
     "rollup": "^0.53.3",
     "rollup-plugin-babel": "^3.0.3",
     "rollup-plugin-commonjs": "^8.2.6",
-    "rollup-plugin-node-resolve": "^3.0.0",
-    "socket.io": "^2.0.4",
-    "webrtc-adapter": "^6.0.3"
+    "rollup-plugin-node-resolve": "^3.0.0"
   }
 }

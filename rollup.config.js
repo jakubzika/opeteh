@@ -47,8 +47,16 @@ export default [
   input: 'src/index.js',
   external: ['ms'],
   output: [
-    { file: 'build/index.js', format: 'cjs' },
-    // { file: 'build/opeteh.es.js', format: 'es' }
+    // { file: 'build/index.js', format: 'cjs' },
+    { file: 'build/index.js', format: 'es' }
+  ],
+  plugins: [
+    babel({
+      exclude: 'node_modules/**',
+      // presets: ['babel-preset-es2015'],
+      plugins: ['transform-async-to-generator'],
+      runtimeHelpers: true,
+    })
   ]
 }
 ];

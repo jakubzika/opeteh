@@ -9,9 +9,11 @@ function log(type, message, data) {
 }
 /**
  * Server library
+ * @class
  */
 class Server {
   /**
+   * Creates new instance of Server8
    * @param  {string} signallingServerURL url of signalling server which allows clients to connect, client must use same signalling server
    * @param  {object[]} [iceServers=defualt ICE servers] array of public ICE servers, if null uses default ones
    * @param  {number} maxConnections maximum number of connections
@@ -21,8 +23,15 @@ class Server {
     this.iceServers = iceServers;
 
     this.signalling = new SignallingService(signallingServerURL, true);
+
     this.clients = {};
     this.onopen = undefined;
+
+    /**
+     * 
+     * @member {string} room room id which is used for clients to connect to server
+     */
+    this.room = null;
 
     this.onSendChannelOpen = this.onSendChannelOpen.bind(this);
     this.onReceiveChannelOpen = this.onReceiveChannelOpen.bind(this);
@@ -66,8 +75,8 @@ class Server {
   /**
    * Returns promise which waits for message from specified clients in `to` parameter
    * 
-   * @param {clientId|clientId[]} [from=null] from who to receive message, if null waits for message from anyone
-   * @param {string} [customType=null] wait for specific type of message, if null waits for any type
+   * @param {clientId|clientId[]|null} [from=null] from who to receive message, if null waits for message from anyone
+   * @param {string|null} [customType=null] wait for specific type of message, if null waits for any type
    * @returns {Promise<object>} contains received message from client/s
    */
   receive(from, customType) {
@@ -81,9 +90,9 @@ class Server {
   /**
    * Sends message to specified clients
    * 
-   * @param {object/string} data 
-   * @param {clientId|clientId[]} to can be single TYPE.BROADCAST or client id or array of user id to which to send the message
-   * @param {string} [customType=null] info for receiving side to specify what kind of message it is sending, if null sends message without custom type
+   * @param {object} data 
+   * @param {clientId|clientId[]|null} to can be single TYPE.BROADCAST or client id or array of user id to which to send the message
+   * @param {string|null} [customType=null] info for receiving side to specify what kind of message it is sending, if null sends message without custom type
    */
   send(data, to, customType) {
     this._send(MESSAGE_TYPES.DATA, data, to, TYPE.SERVER, customType)
@@ -127,7 +136,7 @@ class Server {
    * Initializes and starts the server
    * Accepts incoming connections
    * 
-   * This process finsihes after maximum number of clients is reached
+   * @returns {promise} gets fulfilled when maximum number of clients is reached
    */
   async listen() {
     const onDataChannel = (clientId) => {

@@ -7,8 +7,15 @@ import { resolvePromises, rejectPromises, addPromise } from './lib';
 function log(type, message, data) {
   console.log(`[${type}] - ${message}`, data);
 }
-
+/**
+ * Server library
+ */
 class Server {
+  /**
+   * @param  {string} signallingServerURL url of signalling server which allows clients to connect, client must use same signalling server
+   * @param  {object[]} [iceServers=defualt ICE servers] array of public ICE servers, if null uses default ones
+   * @param  {number} maxConnections maximum number of connections
+   */
   constructor(signallingServerURL, iceServers, maxConnections) {
     this.maxConnections = maxConnections;
     this.iceServers = iceServers;
@@ -29,43 +36,72 @@ class Server {
     }
   }
 
-  // Promise handlers
-  _addPromise(type) {
-    return new Promise((resolve, reject) => {
-      this.promises = addPromise(this.promises, type, resolve, reject);
-    })
-  }
-
-  _addClientPromise(clientId, type) {
-    return new Promise((resolve, reject) => {
-      this.clients[clientId].promises = addPromise(this.clients[clientId].promises, type, resolve, reject);
-    })
-  }
-
-  _resolveClientPromise(clientId, type, data) {
-    this.clients[clientId].promises = resolvePromises(this.clients[clientId].promises, type, data)
-  }
-
-  _resolvePromises(type, data) {
-    this.promises = resolvePromises(this.promises, type, data);
-  }
-  // end of promise handlers
-
+  /**
+   * Returns promise which gets fulfilled when server has finished initialization handshake with signalling server
+   * Server is now in state in which it can accept incoming connections
+   * @returns {promise<string>} Contains room id obtained from signalling server
+   */
   initialization() {
     if (!this.room) {
       return this._addPromise('initialization')
     }
   }
 
+  /**
+   * Returns promise which gets fulfilled when new client has connected to server
+   * @returns {promise<clientId>} Contains clientm id obtained from signalling server
+   */
   newClient() {
     return this._addPromise('newClient')
   }
-
+  /**
+   * Returns promise which gets fullfiled when server receives info message from client
+   * 
+   * @param {promise<object>} from message object with client info
+   */
   clientInfo(from) {
     return this._receive(from, MESSAGE_TYPES.CLIENT_INFO)
   }
-  //
+  
+  /**
+   * Returns promise which waits for message from specified clients in `to` parameter
+   * 
+   * @param {clientId|clientId[]} [from=null] from who to receive message, if null waits for message from anyone
+   * @param {string} [customType=null] wait for specific type of message, if null waits for any type
+   * @returns {Promise<object>} contains received message from client/s
+   */
+  receive(from, customType) {
+    if (customType) {
+      return this._receive(from, `${MESSAGE_TYPES.DATA}/${customType}`)
+    } else {
+      return this._receive(from, MESSAGE_TYPES.DATA)
+    }
+  }
 
+  /**
+   * Sends message to specified clients
+   * 
+   * @param {object/string} data 
+   * @param {clientId|clientId[]} to can be single TYPE.BROADCAST or client id or array of user id to which to send the message
+   * @param {string} [customType=null] info for receiving side to specify what kind of message it is sending, if null sends message without custom type
+   */
+  send(data, to, customType) {
+    this._send(MESSAGE_TYPES.DATA, data, to, TYPE.SERVER, customType)
+  }
+
+  /**
+   * Disconnects client from server
+   * @param {clientId} clientId 
+   */
+  disconnect(clientId) {
+    this.clients[clientId].peerConnection.close();
+    this.clients[clientId].receiveChannel.close();
+    this.clients[clientId].sendChannel.close();
+  }
+
+  /**
+   * @returns {number} number of connected clients
+   */
   get activeClients() {
     let numOfActiveClients = 0;
     forEach(this.clients, (client) => {
@@ -76,6 +112,9 @@ class Server {
     return numOfActiveClients;
   }
 
+  /**
+   * @returns {object} object containing connected clients and their info
+   */
   get clientsInfo() {
     return mapValues(this.clients, (client, clientId) => {
       return {
@@ -84,69 +123,12 @@ class Server {
     })
   }
 
-  _processMessage(message, clientId) {
-    message.from = clientId;
-    this._resolvePromises('message', message);
-    this._resolvePromises(message.type, message);
-    if (message.type === MESSAGE_TYPES.DATA && message.customType) {
-      this._resolvePromises(`${message.type}/${message.customType}`, message);
-    }
-    if (this.clients[clientId]) {
-      this._resolveClientPromise(clientId, 'message', message);
-      this._resolveClientPromise(clientId, message.type, message);
-      if (message.type === MESSAGE_TYPES.DATA && message.customType) {
-        this._resolveClientPromise(clientId, `${message.type}/${message.customType}`, message)
-      }
-    }
-
-    switch (message.type) {
-      case MESSAGE_TYPES.OPEN:
-        break;
-      case MESSAGE_TYPES.DATA:
-        break;
-      case MESSAGE_TYPES.CLIENT_INFO:
-        this.clients[clientId].info = message.data;
-        
-        break;
-    }
-  }
-
-  _onMessage(clientId) {
-    return (evt) => {
-      const message = JSON.parse(evt.data);
-
-      // Handle to who is message meant to
-      let to = message.to;
-
-      if (typeof(to) === 'string') {
-        if (to === TYPE.SERVER) {
-          this._processMessage(message, clientId)
-        }
-        else if (to === TYPE.BROADCAST) {
-          this._processMessage(message, clientId)
-          this._send(message.type, message.data, to, clientId)
-        } else {
-          this._send(message.type, message.data, to, clientId)
-        }
-      } else if (typeof(to) === 'object') {
-        if (to.includes(TYPE.SERVER)) {
-          this._processMessage(message, clientId);
-          this._send(message.type, message.data, to, clientId)
-        } else {
-          this._send(message.type, message.data, to, clientId)
-        }
-      }
-    };
-  }
-
-
-
-  disconnect(clientId) {
-    this.clients[clientId].peerConnection.close();
-    this.clients[clientId].receiveChannel.close();
-    this.clients[clientId].sendChannel.close();
-  }
-
+  /**
+   * Initializes and starts the server
+   * Accepts incoming connections
+   * 
+   * This process finsihes after maximum number of clients is reached
+   */
   async listen() {
     const onDataChannel = (clientId) => {
       return (evt) => {
@@ -266,6 +248,61 @@ class Server {
     }
   }
 
+  _processMessage(message, clientId) {
+    message.from = clientId;
+    this._resolvePromises('message', message);
+    this._resolvePromises(message.type, message);
+    if (message.type === MESSAGE_TYPES.DATA && message.customType) {
+      this._resolvePromises(`${message.type}/${message.customType}`, message);
+    }
+    if (this.clients[clientId]) {
+      this._resolveClientPromise(clientId, 'message', message);
+      this._resolveClientPromise(clientId, message.type, message);
+      if (message.type === MESSAGE_TYPES.DATA && message.customType) {
+        this._resolveClientPromise(clientId, `${message.type}/${message.customType}`, message)
+      }
+    }
+
+    switch (message.type) {
+      case MESSAGE_TYPES.OPEN:
+        break;
+      case MESSAGE_TYPES.DATA:
+        break;
+      case MESSAGE_TYPES.CLIENT_INFO:
+        this.clients[clientId].info = message.data;
+        
+        break;
+    }
+  }
+
+  _onMessage(clientId) {
+    return (evt) => {
+      const message = JSON.parse(evt.data);
+
+      // Handle to who is message meant to
+      let to = message.to;
+
+      if (typeof(to) === 'string') {
+        if (to === TYPE.SERVER) {
+          this._processMessage(message, clientId)
+        }
+        else if (to === TYPE.BROADCAST) {
+          this._processMessage(message, clientId)
+          this._send(message.type, message.data, to, clientId)
+        } else {
+          this._send(message.type, message.data, to, clientId)
+        }
+      } else if (typeof(to) === 'object') {
+        if (to.includes(TYPE.SERVER)) {
+          this._processMessage(message, clientId);
+          this._send(message.type, message.data, to, clientId)
+        } else {
+          this._send(message.type, message.data, to, clientId)
+        }
+      }
+    };
+  }
+
   _send(type, data, to, from = TYPE.SERVER, customType) {
     const message = {
       type,
@@ -292,10 +329,6 @@ class Server {
     }
   }
 
-  send(data, to, customType) {
-    this._send(MESSAGE_TYPES.DATA, data, to, TYPE.SERVER, customType)
-  }
-
   _receive(from, type) {
     if (from) {
       return this._addClientPromise(from, type);
@@ -304,13 +337,27 @@ class Server {
     }
   }
 
-  receive(from, customType) {
-    if (customType) {
-      return this._receive(from, `${MESSAGE_TYPES.DATA}/${customType}`)
-    } else {
-      return this._receive(from, MESSAGE_TYPES.DATA)
+    // Promise handlers
+    _addPromise(type) {
+      return new Promise((resolve, reject) => {
+        this.promises = addPromise(this.promises, type, resolve, reject);
+      })
     }
-  }
+  
+    _addClientPromise(clientId, type) {
+      return new Promise((resolve, reject) => {
+        this.clients[clientId].promises = addPromise(this.clients[clientId].promises, type, resolve, reject);
+      })
+    }
+  
+    _resolveClientPromise(clientId, type, data) {
+      this.clients[clientId].promises = resolvePromises(this.clients[clientId].promises, type, data)
+    }
+  
+    _resolvePromises(type, data) {
+      this.promises = resolvePromises(this.promises, type, data);
+    }
+    // end of promise handlers
 }
 
 export default Server;

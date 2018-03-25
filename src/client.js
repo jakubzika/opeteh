@@ -2,7 +2,7 @@ import { mapValues } from 'lodash';
 
 import SignallingService from "./signalling";
 import { resolvePromises, rejectPromises, addPromise } from './lib';
-import { TYPE, MESSAGE_TYPES } from './constants';
+import { TYPE, MESSAGE_TYPES, ICE_SERVERS } from './constants';
 
 class Client {
   /**
@@ -11,7 +11,7 @@ class Client {
    * @param  {object[]} [iceServers=defualt ICE servers] array of public ICE servers, if null uses default ones
    */
   constructor(signallingServerURL, iceServers) {
-    this.iceServers = iceServers;
+    this.iceServers = iceServers || ICE_SERVERS;;
 
     this.signalling = new SignallingService(signallingServerURL, false);
 

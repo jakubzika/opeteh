@@ -1,7 +1,7 @@
 import { forEach, mapValues, filter, pickBy } from 'lodash';
 
 import SignallingService from './signalling';
-import { STATUS, MESSAGE_TYPES, TYPE } from "./constants";
+import { STATUS, MESSAGE_TYPES, TYPE, ICE_SERVERS } from "./constants";
 import { resolvePromises, rejectPromises, addPromise } from './lib';
 
 function log(type, message, data) {
@@ -20,7 +20,7 @@ class Server {
    */
   constructor(signallingServerURL, iceServers, maxConnections) {
     this.maxConnections = maxConnections;
-    this.iceServers = iceServers;
+    this.iceServers = iceServers || ICE_SERVERS;;
 
     this.signalling = new SignallingService(signallingServerURL, true);
 

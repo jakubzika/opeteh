@@ -33,11 +33,7 @@ class Server {
      */
     this.room = null;
 
-    this.onSendChannelOpen = this.onSendChannelOpen.bind(this);
-    this.onReceiveChannelOpen = this.onReceiveChannelOpen.bind(this);
-    this.onIceCandidate = this.onIceCandidate.bind(this);
     this.onMessage = this._onMessage.bind(this);
-    this.onDataChannel = this.onDataChannel.bind(this);
 
     this.promises = {
       initialization: [],
@@ -144,7 +140,7 @@ class Server {
         log('data channel', 'new data channel', evt.channel);
         let receiveChannel = evt.channel;
         receiveChannel.onmessage = this._onMessage(clientId);
-        receiveChannel.onopen = this.onReceiveChannelOpen(clientId);
+        receiveChannel.onopen = onReceiveChannelOpen(clientId);
   
         this.clients[clientId].receiveChannel = receiveChannel;
         window.receiveChannel = receiveChannel;
@@ -153,7 +149,7 @@ class Server {
   
     const addEventListeners = (clientId) => {
       log('event listener', 'adding event listeners');
-      this.onIncomingIceCandidate(clientId)
+      onIncomingIceCandidate(clientId)
         .then(() => {
           console.log('done');
         });

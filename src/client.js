@@ -119,7 +119,7 @@ class Client {
     const onDataChannel = (evt) => {
       let receiveChannel = evt.channel;
       receiveChannel.onmessage = this._onMessage.bind(this);
-      receiveChannel.onopen = this.onReceiveChannelOpen.bind(this);
+      receiveChannel.onopen = onReceiveChannelOpen.bind(this);
       this.receiveChannel = receiveChannel;
     }
 
@@ -127,7 +127,7 @@ class Client {
       this.peerConnection.onicecandidate = onIceCandidate.bind(this);
       this.peerConnection.ondatachannel = onDataChannel.bind(this);
       this.sendChannel.onopen = onSendChannelOpen.bind(this);
-      this.onIncomingIceCandidate();
+      onIncomingIceCandidate();
     }
 
     this.info = info;

@@ -1,4 +1,6 @@
-# Opeteh
+# Opeteh 
+
+> current version 0.2.0
 
 JavaScript library which uses webRTC protocol to connect different browser instances.
 
@@ -11,8 +13,6 @@ Needs to be used with [opeteh-server](https://github.com/jakubzika/opeteh-server
 [NodeJS](https://nodejs.org/en/) = 8.9.4 or higher
 
 [Yarn](https://yarnpkg.com/en/docs/install) = 1.3.2 or higher
-
-
 
 [opeteh-server](https://github.com/jakubzika/opeteh-server) running on publically accessible address
 
@@ -89,4 +89,10 @@ async function start(room) {
 // physically obtain room id from server and call start
 start('890-890')
 ```
+
+
+
+Documentation for [server](https://github.com/jakubzika/opeteh/blob/master/docs/server.md)
+
+Documentation for [client](https://github.com/jakubzika/opeteh/blob/master/docs/client.md)
 
